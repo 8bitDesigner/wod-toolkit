@@ -1,0 +1,23 @@
+{
+  "name": "wod-toolkit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "author": "Paul Sweeney <paul@8-bitdesign.com>",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.3.1"
+  },
+  "standard": {
+    "globals": [
+      "jest",
+      "describe",
+      "expect",
+      "it"
+    ]
+  }
+}
