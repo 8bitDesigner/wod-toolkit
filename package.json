@@ -10,7 +10,8 @@
   "author": "Paul Sweeney <paul@8-bitdesign.com>",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^12.3.1"
+    "discord.js": "^12.3.1",
+    "redis": "^3.0.2"
   },
   "standard": {
     "globals": [
