@@ -41,7 +41,7 @@ client.on('message', (msg) => {
     case 'roll': return commands.roll.handle(args, msg)
     case 'momentum': return commands.momentum.handle(args, msg)
     case 'help': return help(commands[args[0]], msg)
-    default: return help(null, msg)
+    default: return help(command, msg)
   }
 })
 
