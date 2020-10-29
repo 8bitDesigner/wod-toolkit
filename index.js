@@ -10,16 +10,19 @@ const commands = {
 
 function help (command, msg) {
   if (command && command.usage) {
-    msg.reply([
-      `*${command.name}*`,
-      command.description,
-      command.usage
-    ].join('\n'))
+    msg.reply(`*${command.name}*: ${command.description}\n${command.usage}`)
   } else {
-    msg.reply(`I'm afraid I don't know how to \`${command}\`.
-I know the following commands:
-${Object.values(commands).map(cmd => `- ${cmd.name}`)}
-Use \`!help [command]\` to learn more.`)
+    const response = ['I know the following commands:']
+
+    if (command) {
+      response.unshift(`I'm afraid I don't know how to \`${command}\`.`)
+    }
+
+    Object.values(commands).forEach(cmd => {
+      response.push(`- *${cmd.name}*: ${cmd.description}`)
+    })
+
+    msg.reply(response.concat('Use `!help [command]` to learn more.').join('\n'))
   }
 }
 
@@ -36,7 +39,7 @@ client.on('message', (msg) => {
     case 'roll': return commands.roll.handle(args, msg)
     case 'momentum': return commands.momentum.handle(args, msg)
     case 'help': return help(commands[args[0]], msg)
-    default: return msg.reply(`I'm afraid I don't know how to \`${command}\``)
+    default: return help(null, msg)
   }
 })
 
