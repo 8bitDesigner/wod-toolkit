@@ -4,7 +4,7 @@ const token = process.env.TOKEN
 const prefix = '!'
 
 const commands = {
-  roll: require('./lib/roll-command.js'),
+  roll: require('./commands/roll/index.js'),
   momentum: require('./lib/momentum.js')
 }
 
@@ -38,10 +38,10 @@ client.on('message', (msg) => {
   const [command, ...args] = text.split(' ')
 
   switch (command) {
-    case 'roll': return commands.roll.handle(args, msg)
-    case 'momentum': return commands.momentum.handle(args, msg)
-    case 'help': return help(commands[args[0]], msg)
-    default: return help(command, msg)
+    case 'roll': return commands.roll.handle(args, msg, client)
+    case 'momentum': return commands.momentum.handle(args, msg, client)
+    case 'help': return help(commands[args[0]], msg, client)
+    default: return help(command, msg, client)
   }
 })
 

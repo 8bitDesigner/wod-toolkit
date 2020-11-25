@@ -9,11 +9,15 @@
   },
   "author": "Paul Sweeney <paul@8-bitdesign.com>",
   "license": "ISC",
+  "engines": {
+    "node": "15.x"
+  },
   "dependencies": {
     "discord.js": "^12.3.1",
     "redis": "^3.0.2"
   },
   "standard": {
+    "parser": "babel-eslint",
     "globals": [
       "jest",
       "describe",
