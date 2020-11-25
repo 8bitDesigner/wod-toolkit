@@ -46,8 +46,8 @@ Usage:
   \`!momentum reset\` reset momentum to 0
 `
 
-module.exports.handle = function (args = [], msg) {
-  const [command, value] = args
+module.exports.handle = function (input, msg) {
+  const [command, value] = input.split(' ')
   const int = parseInt(value)
   const field = new Momentum(msg)
 

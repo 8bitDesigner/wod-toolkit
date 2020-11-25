@@ -32,14 +32,14 @@ Usage:
   \`!roll 5 7\` roll 5 d10, 7s and above are successes
 `
 
-module.exports.handle = function ([input, target], msg, client) {
+module.exports.handle = function (input, msg, client) {
   let parsedInput, rollResult, description
   const reply = new MessageEmbed()
 
   if (!input) { return msg.reply(module.exports.usage) }
 
   try {
-    parsedInput = InputParser.parse([input, target].join(' '))
+    parsedInput = InputParser.parse(input)
     result = DiceRoller.roll(parsedInput)
   } catch (e) {
     return msg.reply(e.message)

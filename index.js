@@ -5,7 +5,7 @@ const prefix = '!'
 
 const commands = {
   roll: require('./commands/roll/index.js'),
-  momentum: require('./lib/momentum.js')
+  momentum: require('./commands/momentum/index.js')
 }
 
 function help (command, msg) {
@@ -37,11 +37,12 @@ client.on('message', (msg) => {
   const text = msg.content.slice(prefix.length)
   const [command, ...args] = text.split(' ')
 
-  switch (command) {
-    case 'roll': return commands.roll.handle(args, msg, client)
-    case 'momentum': return commands.momentum.handle(args, msg, client)
-    case 'help': return help(commands[args[0]], msg, client)
-    default: return help(command, msg, client)
+  if (command === 'help') {
+    return help(commands[args[0]], msg)
+  } else if (command && commands[command]) {
+    return commands[command].handle(args.join(' '), msg)
+  } else {
+    return help(command, msg)
   }
 })
 
