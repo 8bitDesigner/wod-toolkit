@@ -1,3 +1,4 @@
+const Command = require('../../lib/command.js')
 const { MessageEmbed } = require('discord.js')
 const { InputParser } = require('./input-parser.js')
 const { DiceRoller } = require('./roller.js')
@@ -24,9 +25,10 @@ const colors = {
 
 const toEmoji = num => emoji[num]
 
-module.exports.name = 'Roll'
-module.exports.description = 'Rolls a number of d10s, rerolling any 10s'
-module.exports.usage = `
+module.exports = class RollCommand extends Command {
+  name = 'Roll'
+  description = 'Rolls a number of d10s, rerolling any 10s'
+  usage = `
 Usage:
   \`!roll 5\` roll 5 d10, 8s and above are successes
   \`!roll 5++\` roll 5 d10 with two enhancment bonuses
@@ -34,23 +36,33 @@ Usage:
   \`!roll 5 7\` roll 5 d10, 7s and above are successes
 `
 
-module.exports.handle = function (input, msg) {
-  let parsedInput, rollResult, description
-  const reply = new MessageEmbed()
+  handle (input, message) {
+    let parsedInput, result, description
+    const reply = new MessageEmbed()
 
-  if (input.trim() === '') { return msg.reply(module.exports.usage) }
+    if (input.trim() === '') { return message.reply(this.usage) }
 
-  try {
-    parsedInput = InputParser.parse(input)
-    result = DiceRoller.roll(parsedInput)
-  } catch (e) {
-    return msg.reply(e.message)
+    try {
+      parsedInput = InputParser.parse(input)
+      result = DiceRoller.roll(parsedInput)
+    } catch (e) {
+      return message.reply(e.message)
+    }
+
+    reply.setTitle(`@${message.author.username} - ${result.type()}`)
+    reply.setColor(colors[result.type()])
+    reply.setDescription(result.rolls.map(arr => arr.map(toEmoji).join(' ')).join(' + '))
+    reply.setFooter(result.toString())
+
+    message.reply(reply)
+    this.handleMomentum(result, message)
   }
 
-  reply.setTitle(`@${msg.author.username} - ${result.type()}`)
-  reply.setColor(colors[result.type()])
-  reply.setDescription(result.rolls.map(arr => arr.map(toEmoji).join(' ')).join(' + '))
-  reply.setFooter(result.toString())
-
-  msg.reply(reply)
+  handleMomentum (result, message) {
+    if (result.type() === 'Failure') {
+      this.router.find('momentum').handle('add 1', message)
+    } else if (result.type() === 'Botch') {
+      this.router.find('momentum').handle('add 3', message)
+    }
+  }
 }
