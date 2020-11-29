@@ -22,6 +22,8 @@ const colors = {
   Botch: '#fd7e14'
 }
 
+const toEmoji = num => emoji[num]
+
 module.exports.name = 'Roll'
 module.exports.description = 'Rolls a number of d10s, rerolling any 10s'
 module.exports.usage = `
@@ -32,11 +34,11 @@ Usage:
   \`!roll 5 7\` roll 5 d10, 7s and above are successes
 `
 
-module.exports.handle = function (input, msg, client) {
+module.exports.handle = function (input, msg) {
   let parsedInput, rollResult, description
   const reply = new MessageEmbed()
 
-  if (!input) { return msg.reply(module.exports.usage) }
+  if (input.trim() === '') { return msg.reply(module.exports.usage) }
 
   try {
     parsedInput = InputParser.parse(input)
@@ -47,11 +49,7 @@ module.exports.handle = function (input, msg, client) {
 
   reply.setTitle(`@${msg.author.username} - ${result.type()}`)
   reply.setColor(colors[result.type()])
-  reply.setDescription(
-    result.rolls.map(array => {
-      return array.map(num => emoji[num]).join(' ')
-    }).join(' + ')
-  )
+  reply.setDescription(result.rolls.map(arr => arr.map(toEmoji).join(' ')).join(' + '))
   reply.setFooter(result.toString())
 
   msg.reply(reply)

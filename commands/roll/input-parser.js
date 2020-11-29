@@ -6,7 +6,7 @@ module.exports.InputParser = class InputParser {
     let count, target, enhancements
 
     if (!match) {
-      throw new Error(`Could not parse input: \`${input}\``)
+      throw new Error(`Could not parse input: \`${string}\``)
     } else if (isNaN(parseInt(match.groups.count, 10))) {
       throw new Error(`${match.groups.count}" is not a number! ${module.exports.usage}`)
     }

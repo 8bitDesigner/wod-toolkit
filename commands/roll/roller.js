@@ -1,8 +1,8 @@
 const tens = arr => arr.filter(n => n === 10)
 const last = arr => arr[arr.length - 1]
 const countLetter = (letter, str) => str.split('').filter(l => l === letter).length
-const countNumber = (num, array) => array.filter(n => n >= num).length
-const pluralize = (string, num) => num > 1 ? `${string}s` : string
+const countNumber = (num, array) => array.filter(n => n === num).length
+const pluralize = (string, num) => num === 1 ? string : `${string}s`
 
 function rollDie (times = 1, sides = 10) {
   return new Array(times).fill('').map(() => {
@@ -27,30 +27,24 @@ class DiceRoller {
 
   constructor (rolls = [], target = 8, enhancements = '') {
     this.rolls = rolls
-    this.hits = countNumber(target, this.rolls.flat())
+    this.hits = this.rolls.flat().filter(n => n >= target).length
     this.negHits = countLetter('-', enhancements)
     this.bonusHits = countLetter('+', enhancements)
     this.ones = countNumber(1, this.rolls.flat())
   }
 
-  isSuccess () {
-    return this.hits - this.negHits
-  }
-
   total () {
-    const subtotal = this.hits - this.negHits
-
-    if (subtotal > 0) {
-      return subtotal + this.bonusHits
+    if (this.hits > 0) {
+      return this.hits + this.bonusHits - this.negHits
     } else {
-      return subtotal
+      return this.hits - this.negHits
     }
   }
 
   type () {
     if (this.total() > 0) {
       return 'Success'
-    } else if (this.ones.length > 0) {
+    } else if (this.hits === 0 && this.ones > 0) {
       return 'Botch'
     } else {
       return 'Failure'
@@ -58,13 +52,12 @@ class DiceRoller {
   }
 
   toString () {
-    const subtotal = this.hits - this.negHits
-    const netEnhancements = this.negHits + this.bonusHits
+    const netEnhancements = this.hits > 0 ? this.bonusHits - this.negHits : this.negHits
     const hitString = this.hits + pluralize(' hit', this.hits)
 
     if (netEnhancements === 0) {
       return hitString
-    } else if (subtotal < 1) {
+    } else if (this.hits < 1) {
       return [
         hitString,
         '-',
@@ -74,9 +67,9 @@ class DiceRoller {
     } else {
       return [
         hitString,
-        netEnhancements > 0 ? '+' : '-',
-        netEnhancements,
-        pluralize('enhancement', netEnhancements)
+        netEnhancements > -1 ? '+' : '-',
+        Math.abs(netEnhancements),
+        pluralize('enhancement', Math.abs(netEnhancements))
       ].join(' ')
     }
   }
