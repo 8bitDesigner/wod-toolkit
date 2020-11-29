@@ -13,8 +13,10 @@
     "node": "15.x"
   },
   "dependencies": {
+    "@discordjs/opus": "^0.3.3",
     "discord.js": "^12.3.1",
-    "redis": "^3.0.2"
+    "redis": "^3.0.2",
+    "sodium": "^3.0.2"
   },
   "standard": {
     "parser": "babel-eslint",

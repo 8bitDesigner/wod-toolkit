@@ -55,7 +55,9 @@ Usage:
     reply.setFooter(result.toString())
 
     message.reply(reply)
+
     this.handleMomentum(result, message)
+    this.handleEffects(result, message)
   }
 
   handleMomentum (result, message) {
@@ -63,6 +65,14 @@ Usage:
       this.router.find('momentum').handle('add 1', message)
     } else if (result.type() === 'Botch') {
       this.router.find('momentum').handle('add 3', message)
+    }
+  }
+
+  handleEffects (result, message) {
+    if (result.total() > 3) {
+      this.router.find('play').handle('yay', message)
+    } else if (result.type() === 'Botch') {
+      this.router.find('play').handle('fart', message)
     }
   }
 }
