@@ -49,7 +49,6 @@ Usage:
       return message.reply(e.message)
     }
 
-    this.playRollSound(message)
 
     reply.setTitle(`@${message.author.username} - ${result.type()}`)
     reply.setColor(colors[result.type()])
@@ -59,7 +58,9 @@ Usage:
     message.reply(reply)
 
     this.handleMomentum(result, message)
-    this.playResultSound(result, message)
+
+    this.playRollSound(message)
+    setTimeout(() => this.playResultSound(result, message), 400)
   }
 
   handleMomentum (result, message) {
