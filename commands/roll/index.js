@@ -49,7 +49,6 @@ Usage:
       return message.reply(e.message)
     }
 
-
     reply.setTitle(`@${message.author.username} - ${result.type()}`)
     reply.setColor(colors[result.type()])
     reply.setDescription(result.rolls.map(arr => arr.map(toEmoji).join(' ')).join(' + '))

@@ -1,10 +1,8 @@
+const { MessageEmbed } = require('discord.js')
+const MomentumValue = require('./momentum-value.js')
 const Command = require('../../lib/command.js')
-const promisify = require('util').promisify
-const redis = require('redis').createClient(process.env.REDIS_URL)
 
-const [get, set, incrby, decrby] = ['get', 'set', 'incrby', 'decrby'].map(func => {
-  return promisify(redis[func].bind(redis))
-})
+const key = msg => [msg.guild.id, msg.guild.systemChannelID, 'momentum'].join(':')
 
 module.exports = class MomentumCommand extends Command {
   name = 'Momentum'
@@ -19,48 +17,46 @@ Usage:
 `
 
   handle (input, msg) {
-    const key = [msg.guild.id, msg.guild.systemChannelID, 'momentum'].join(':')
     const [command, value] = input.split(' ')
     const int = parseInt(value)
 
-    let promise
-
-    if (!command) {
-      promise = this.get(key)
-    } else if (command === 'set') {
-      promise = this.set(key, int)
-    } else if (command === 'add') {
-      promise = this.incr(key, int)
-    } else if (['use', 'remove'].includes(command)) {
-      promise = this.decr(key, int)
-    } else if (command === 'reset') {
-      promise = this.reset(key)
-    }
-
-    if (!promise) return
-
-    promise
-    .then(result => msg.reply(result))
-    .catch(err => msg.reply(`ERROR: ${err}`))
+    MomentumValue.find(key(msg))
+    .then(value => {
+      switch (command) {
+        case 'set':
+          return value.set(int)
+        case 'add':
+          return value.add(int)
+        case 'use':
+        case 'remove':
+          return value.use(int)
+        case 'reset':
+          return value.reset()
+        default:
+          return value
+      }
+    })
+    .then(result => msg.reply(this.reply(result)))
+    .catch(err => msg.reply(this.errorReply(err)))
   }
 
-  get (key) {
-    return get(key).then(res => res || 0)
+  reply (value) {
+    const reply = new MessageEmbed()
+    reply.setTitle('Momentum')
+    reply.setColor('#007bff')
+    reply.setDescription(value.toString())
+    reply.setFooter(`${value.current} out of ${value.max}`)
+
+    return reply
   }
 
-  set (key, val) {
-    return set(key, val).then(() => get(key))
-  }
+  errorReply (error) {
+    const reply = new MessageEmbed()
+    reply.setTitle('Momentum')
+    reply.setColor('#dc3545')
+    reply.setDescription(error.message)
+    console.log(error)
 
-  incr (key, by) {
-    return incrby(key, by)
-  }
-
-  decr (key, by) {
-    return decrby(key, by)
-  }
-
-  reset (key) {
-    return set(key, 0).then(() => get(key))
+    return reply
   }
 }
