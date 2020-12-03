@@ -49,6 +49,8 @@ Usage:
       return message.reply(e.message)
     }
 
+    this.playRollSound(message)
+
     reply.setTitle(`@${message.author.username} - ${result.type()}`)
     reply.setColor(colors[result.type()])
     reply.setDescription(result.rolls.map(arr => arr.map(toEmoji).join(' ')).join(' + '))
@@ -57,7 +59,7 @@ Usage:
     message.reply(reply)
 
     this.handleMomentum(result, message)
-    this.handleEffects(result, message)
+    this.playResultSound(result, message)
   }
 
   handleMomentum (result, message) {
@@ -68,7 +70,11 @@ Usage:
     }
   }
 
-  handleEffects (result, message) {
+  playRollSound (message) {
+    this.router.find('play').handle('roll', message)
+  }
+
+  playResultSound (result, message) {
     if (result.total() > 3) {
       this.router.find('play').handle('yay', message)
     } else if (result.type() === 'Botch') {
