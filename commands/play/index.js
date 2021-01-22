@@ -31,8 +31,9 @@ Usage:
     }
 
     message.member.voice.channel.join().then(connection => {
-      const dispatcher = connection.play(fs.createReadStream(effect), {type: 'ogg/opus'})
-      dispatcher.on('error', console.error);
+      const readStream = fs.createReadStream(effect)
+      const dispatcher = connection.play(readStream, {type: 'ogg/opus'})
+      dispatcher.on('error', console.error)
     }).catch(err => {
       console.error(err)
     })

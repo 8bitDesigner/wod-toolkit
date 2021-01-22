@@ -1,12 +1,16 @@
+const fs = require('fs')
 const path = require('path')
 const Discord = require('discord.js')
 const client = new Discord.Client()
 const token = process.env.TOKEN
 
+const commandDir = path.join(__dirname, 'commands')
 const CommandRouter = require('./lib/command-router.js') 
-const router = new CommandRouter({
-  prefix: '!',
-  directory: path.join(__dirname, 'commands')
+const router = new CommandRouter({ prefix: process.env.PREFIX || '!' })
+
+fs.readdirSync(commandDir).forEach(folder => {
+  const Klass = require(path.join(commandDir, folder, 'index.js'))
+  router.addCommand(Klass)
 })
 
 client.on('ready', () => {

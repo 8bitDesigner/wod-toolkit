@@ -26,8 +26,8 @@ const colors = {
 const toEmoji = num => emoji[num]
 
 module.exports = class RollCommand extends Command {
-  name = 'Roll'
-  description = 'Rolls a number of d10s, rerolling any 10s'
+  name = 'Path'
+  description = 'Rolls a number of d10s, rerolling any 10s following Storypath rules'
   usage = `
 Usage:
   \`!roll 5\` roll 5 d10, 8s and above are successes

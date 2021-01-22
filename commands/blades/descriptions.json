@@ -1,0 +1,27 @@
+{
+  "controlled": {
+    "critical": "You do it with *increased effect*.",
+    "success": "You do it.",
+    "partial": "You hesitate. Withdraw and try a different approach, or else do it with a minor consequence: a minor *complication* occurs, you have *reduced effect*, you suffer *lesser harm*, you end up in a *risky* position.",
+    "failure": "You falter. Press on by seizing a *risky* opportunity, or withdraw and try a different approach."
+  },
+  "risky": {
+    "critical": "You do it with *increased effect*.",
+    "success": "You do it.",
+    "partial": "You do it, but there’s a consequence: you suffer *harm*, a *complication* occurs, you have *reduced effect*, you end up in a *desperate* position.",
+    "failure": "Things go badly. You suffer *harm*, a *complication* occurs, you end up in a *desperate* position, you *lose this opportunity*."
+  },
+  "desperate": {
+    "critical": "You do it.",
+    "success": "You do it.",
+    "partial": "You do it, but there’s a consequence: you suffer *severe harm*, a *serious complication* occurs, you have *reduced effect*.",
+    "failure": "It’s the worst outcome. You suffer *severe harm*, a *serious complication* occurs, you *lose this opportunity* for action."
+  },
+  "fortune": {
+    "critical": "Exceptional result / Great, extreme effect.",
+    "success": "Good result / Standard,  full effect.",
+    "partial": "Mixed result / Limited, partial  effect.",
+    "failure": "Bad result / Poor, little effect."
+  }
+}
+
