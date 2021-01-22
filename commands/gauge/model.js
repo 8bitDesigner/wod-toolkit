@@ -15,10 +15,10 @@ function clamp (min, val, max) {
   }
 }
 
-class Clock {
+class Gauge {
   static find (key, name) {
     return hget(key, name).then(json => (
-      new Clock(key, name, JSON.parse(json)))
+      new Gauge(key, name, JSON.parse(json)))
     )
   }
 
@@ -28,14 +28,14 @@ class Clock {
         return []
       } else {
         return Object.entries(result).map(([name, json]) => {
-          return new Clock(key, name, JSON.parse(json))
+          return new Gauge(key, name, JSON.parse(json))
         })
       }
     })
   }
 
   static create (key, name, segments) {
-    return new Clock(key, name, {segments}).save()
+    return new Gauge(key, name, {segments}).save()
   }
 
   static get defaults () {
@@ -48,7 +48,7 @@ class Clock {
   constructor (key, name, attributes) {
     this.key = key
     this.name = name
-    this.attributes = Object.assign(Clock.defaults, attributes)
+    this.attributes = Object.assign(Gauge.defaults, attributes)
   }
 
   save () {
@@ -89,4 +89,4 @@ class Clock {
   }
 }
 
-module.exports.Clock = Clock
+module.exports.Gauge = Gauge
