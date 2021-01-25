@@ -1,4 +1,4 @@
-const {hget, hset, hdel, hgetall} = require('../../lib/redis.js')
+const {hexists, hget, hset, hdel, hgetall} = require('../../lib/redis.js')
 
 const emoji = {
   filled: ':white_square_button:',
@@ -17,9 +17,15 @@ function clamp (min, val, max) {
 
 class Gauge {
   static find (key, name) {
-    return hget(key, name).then(json => (
-      new Gauge(key, name, JSON.parse(json)))
-    )
+    return hexists(key, name).then(exists => {
+      if (exists) {
+        return hget(key, name).then(json => {
+          return new Gauge(key, name, JSON.parse(json))
+        })
+      } else {
+        return null
+      }
+    })
   }
 
   static all (key) {

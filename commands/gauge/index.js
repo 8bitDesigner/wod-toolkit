@@ -2,6 +2,8 @@ const Command = require('../../lib/command.js')
 const { Gauge } = require('./model.js')
 const { MessageEmbed } = require('discord.js')
 const key = msg => [msg.guild.id, msg.guild.systemChannelID, 'gauges'].join(':')
+const last = array => array[array.length - 1]
+const { blue, red } = require('../../lib/colors.js')
 
 module.exports = class GaugeCommand extends Command {
   name = 'Gauge'
@@ -9,6 +11,8 @@ module.exports = class GaugeCommand extends Command {
   usage = `
 Usage:
   \`!gauge new [name] [number of segments]\` creates a new gague and post it in the current channel
+  \`!gauge [name]\` show a given gauge
+  \`!gauge [name] show\` show a given gauge
   \`!gauge [name] set [completed segments]\` changes the filled in segments on the gauge
   \`!gauge [name] tick\` advance this gauge by one
   \`!gauge [name] untick\` decrease this gauge by one
@@ -20,7 +24,9 @@ Usage:
 
   commands = {
     new: this.handleCreate,
+    help: this.handleHelp,
     list: this.handleAll,
+    show: this.handleShow,
     delete: this.handleDelete,
     tick: this.handleTick,
     untick: this.handleUntick,
@@ -29,45 +35,59 @@ Usage:
     use: this.handleRemove
   }
 
-  handle (input, msg) {
+  parseInput (input) {
     const words = input.split(' ')
-    let command, name, segmentCount
+    let command = 'show'
+    let name = words.join(' ')
+    let segmentCount = null
 
-    // does our words array start with 'new'
+    // Does our words array start with 'new'
     if (words[0] === 'new') {
-      console.log({words})
       command = words.shift()
       segmentCount = words.pop()
       name = words.join(' ')
-    // does our words array end with a number?
+    // Does our words array end with a number?
     } else if (!isNaN(parseInt(words[words.length - 1], 10))) {
       segmentCount = parseInt(words.pop(), 10)
       command = words.pop()
       name = words.join(' ')
-    } else {
+    // Is the last word in the list a command name?
+    } else if (Object.keys(this.commands).includes(last(words))) {
       command = words.pop()
+      segmentCount = null
       name = words.join(' ')
+    // Handle the weird cases
+    } else if (words.join(' ').trim().length === 0) {
+      command = 'list'
+      name = null
     }
 
-    const handler = this.commands[command || 'list']
+    return {command, name, segmentCount}
+  }
 
-    console.log({handler, command, name, segmentCount})
+  handle (input, msg) {
+    const { command, name, segmentCount } = this.parseInput(input)
+    const handler = this.commands[command || 'list']
 
     if (handler) {
       handler.call(this, name, segmentCount, msg).then(response => {
-        if (Array.isArray(response)) {
-          response.forEach(obj => msg.reply(this.gaugeToEmbed(obj)))
-        } else if (response instanceof Gauge) {
-          msg.reply(this.gaugeToEmbed(response))
-        } else {
-          msg.reply(response)
+        if (!Array.isArray(response)) {
+          response = [response]
         }
+
+        response.forEach(obj => {
+          msg.reply(obj instanceof Gauge ? this.gaugeToEmbed(obj) : obj)
+        })
       }).catch(err => {
-        msg.reply(err.message)
+        msg.reply(this.errorToEmbed(err))
       })
     } else {
-      msg.reply(`I don't know how to ${command}`)
+      msg.reply(this.errorToEmbed(new Error(`I don't know how to ${command}`)))
     }
+  }
+
+  handleHelp () {
+    return Promise.resolve(this.helpToEmbed())
   }
 
   handleAll (name, segmentCount, msg) {
@@ -76,6 +96,16 @@ Usage:
         return 'There are no gauges defined in this channel'
       } else {
         return gauges
+      }
+    })
+  }
+
+  handleShow (name, segmentCount, msg) {
+    return Gauge.find(key(msg), name).then(gauge => {
+      if (!gauge) {
+        throw new Error(`Couldn't find a gauge with the name \`${name}\``)
+      } else {
+        return gauge
       }
     })
   }
@@ -109,7 +139,7 @@ Usage:
     segmentCount = parseInt(segmentCount, 10)
 
     if (!name || isNaN(segmentCount)) {
-      return Promise.resolve(`You\'re missing either a name or new value.\n${usage}`)
+      return Promise.reject(new Error(`You\'re missing either a name or new value.\n${usage}`))
     } else {
       return Gauge.find(key(msg), name).then(gauge => {
         return gauge.setCompleted(segmentCount).save()
@@ -119,7 +149,7 @@ Usage:
 
   handleDelete (name, segmentCount, msg) {
     if (!name) {
-      return Promise.resolve('Missing the name of the gauge you want to delete')
+      return Promise.reject(new Error('Missing the name of the gauge you want to delete'))
     } else {
       return Gauge.find(key(msg), name)
         .then(gauge => gauge.delete())
@@ -132,9 +162,9 @@ Usage:
     segmentCount = parseInt(segmentCount, 10)
 
     if (!name) {
-      return Promise.resolve(`Missing the name of the gauge you want to create\n${usage}`)
+      return Promise.reject(new Error(`Missing the name of the gauge you want to create\n${usage}`))
     } else if (isNaN(segmentCount)) {
-      return Promise.resolve(`Missing the number of segments the gauge should have\n${usage}`)
+      return Promise.reject(new Error(`Missing the number of segments the gauge should have\n${usage}`))
     } else {
       return Gauge.create(key(msg), name, segmentCount)
     }
@@ -143,7 +173,7 @@ Usage:
   gaugeToEmbed (gauge) {
     const reply = new MessageEmbed()
     reply.setTitle(gauge.name)
-    reply.setColor('#007bff')
+    reply.setColor(blue)
     reply.setDescription(gauge.toString())
     reply.setFooter(`${gauge.attributes.completed} out of ${gauge.attributes.segments}`)
 

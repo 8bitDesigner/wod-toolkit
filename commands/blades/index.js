@@ -3,6 +3,8 @@ const { MessageEmbed } = require('discord.js')
 const { inputParser } = require('./input-parser.js')
 const descriptions = require('./descriptions.json')
 const { rollWithContext } = require('./roller.js')
+const { red, blue, orange, green } = require('../../lib/colors.js')
+
 const initialCap = word => word[0].toUpperCase() + word.substring(1, word.length)
 
 const emoji = [
@@ -16,10 +18,10 @@ const emoji = [
 ]
 
 const colors = {
-  failure: '#dc3545',
-  success: '#007bff',
-  partial: '#fd7e14',
-  critical: '#7289da'
+  failure: red,
+  success: blue,
+  partial: orange,
+  critical: green
 }
 
 const toEmoji = num => emoji[num]
@@ -37,16 +39,23 @@ Usage:
 
   handle (input, message) {
     let parsedInput, result, description
-    const reply = new MessageEmbed()
 
-    if (input.trim() === '') { return message.reply(this.usage) }
+    if (input.trim() === '' || input.trim() === 'help') {
+      return message.reply(this.helpToEmbed())
+    }
 
     try {
       parsedInput = inputParser(input)
       result = rollWithContext(parsedInput.count)
+      message.reply(this.resultToEmbed(result, parsedInput, message))
+      this.playRollSound(message)
     } catch (e) {
-      return message.reply(e.message)
+      return message.reply(this.errorToEmbed(e))
     }
+  }
+
+  resultToEmbed (result, parsedInput, message) {
+    const reply = new MessageEmbed()
 
     reply.setTitle(`@${message.author.username} - ${initialCap(result.type)}`)
     reply.setColor(colors[result.type])
@@ -56,11 +65,10 @@ Usage:
       reply.setFooter(descriptions[parsedInput.type][result.type])
     }
 
-    message.reply(reply)
-    this.playRollSound(message)
+    return reply
   }
 
   playRollSound (message) {
-    this.router.find('play').handle('roll', message)
+    this.router.route(message, 'play roll')
   }
 }
