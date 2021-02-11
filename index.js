@@ -5,7 +5,7 @@ const client = new Discord.Client()
 const token = process.env.TOKEN
 
 const commandDir = path.join(__dirname, 'commands')
-const CommandRouter = require('./lib/command-router.js') 
+const CommandRouter = require('./lib/command-router.js')
 const router = new CommandRouter({ prefix: process.env.PREFIX || '!' })
 
 fs.readdirSync(commandDir).forEach(folder => {

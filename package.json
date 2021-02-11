@@ -18,6 +18,9 @@
     "redis": "^3.0.2",
     "sodium": "^3.0.2"
   },
+  "devDependencies": {
+    "jest": "*"
+  },
   "standard": {
     "parser": "babel-eslint",
     "globals": [

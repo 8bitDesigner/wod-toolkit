@@ -26,7 +26,7 @@ const colors = {
 
 const toEmoji = num => emoji[num]
 
-module.exports = class RollCommand extends Command {
+module.exports = class BladesCommand extends Command {
   name = 'Blades'
   description = 'Rolls a number of d6s using Blades in the Darks parsing rules'
   usage = `

@@ -1,6 +1,4 @@
-function roll (num) {
-  return new Array(num).fill('').map(() => Math.floor(Math.random() * 6) + 1)
-}
+const roll = require('../../lib/roll.js')
 
 function rollWithContext (num) {
   const isDesperate = num < 1
