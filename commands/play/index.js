@@ -21,8 +21,7 @@ Usage:
 
   handle (input, message) {
     const [effectName, modifier] = input.split(' ')
-    const effect = effects[input[0]]
-
+    const effect = effects[effectName]
 
     if (!message.member.voice.channel) {
       return modifier === 'quietly'
