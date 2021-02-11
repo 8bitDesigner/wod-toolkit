@@ -82,9 +82,9 @@ Usage:
 
   playResultSound (result, message) {
     if (result.total() > 3) {
-      this.router.route(message, 'play yay')
+      this.router.route(message, 'play yay quietly')
     } else if (result.type() === 'Botch') {
-      this.router.route(message, 'play fart')
+      this.router.route(message, 'play fart quietly')
     }
   }
 }

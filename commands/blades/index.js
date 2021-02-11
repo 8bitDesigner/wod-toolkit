@@ -49,6 +49,9 @@ Usage:
       result = rollWithContext(parsedInput.count)
       message.reply(this.resultToEmbed(result, parsedInput, message))
       this.playRollSound(message)
+      if (result.type === 'critical') {
+        setTimeout(() => this.router.route(message, 'play yay quietly'), 400)
+      }
     } catch (e) {
       return message.reply(this.errorToEmbed(e))
     }
@@ -69,6 +72,6 @@ Usage:
   }
 
   playRollSound (message) {
-    this.router.route(message, 'play roll')
+    this.router.route(message, 'play roll quietly')
   }
 }

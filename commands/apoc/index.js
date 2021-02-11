@@ -74,8 +74,6 @@ Usage:
       ? 'partial'
       : 'failure'
 
-    console.log(result, modifier, value)
-
     return type
   }
 
@@ -85,8 +83,8 @@ Usage:
     const description = result.map(toEmoji).join(' ')
 
     const sign = modifier && modifier > 0
-      ? ':heavy_plus_sign:'
-      : ':heavy_minus_sign:'
+      ? '+'
+      : '-'
 
     reply.setTitle(`@${message.author.username} - ${initialCap(type)}`)
     reply.setColor(colors[type])
@@ -101,6 +99,6 @@ Usage:
   }
 
   playRollSound (message) {
-    this.router.route(message, 'play roll')
+    this.router.route(message, 'play roll quietly')
   }
 }

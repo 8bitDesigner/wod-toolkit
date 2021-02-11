@@ -20,13 +20,14 @@ Usage:
 \`play [effect name]\``
 
   handle (input, message) {
-    const effect = effects[input]
+    const [effectName, modifier] = input.split(' ')
+    const effect = effects[input[0]]
 
-    if (!message.member.voice.channel) {
+    if (!message.member.voice.channel && modifier !== 'quietly') {
       return message.reply("You're not currently in a voice channel!")
     }
 
-    if (!effect) {
+    if (!effect && modifier !== 'quietly') {
       return message.reply(`I don't have a clip named \`${input}\`, I know the following clips:\n${Object.keys(effects).join(', ')}`)
     }
 
