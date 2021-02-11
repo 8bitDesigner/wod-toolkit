@@ -23,11 +23,14 @@ Usage:
     const [effectName, modifier] = input.split(' ')
     const effect = effects[input[0]]
 
-    if (!message.member.voice.channel && modifier !== 'quietly') {
-      return message.reply("You're not currently in a voice channel!")
+
+    if (!message.member.voice.channel) {
+      return modifier === 'quietly'
+        ? null
+        : message.reply("You're not currently in a voice channel!")
     }
 
-    if (!effect && modifier !== 'quietly') {
+    if (!effect) {
       return message.reply(`I don't have a clip named \`${input}\`, I know the following clips:\n${Object.keys(effects).join(', ')}`)
     }
 
