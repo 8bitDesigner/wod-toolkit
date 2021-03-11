@@ -1,7 +1,8 @@
 const Command = require('../../lib/command.js')
 const { Gauge } = require('./model.js')
 const { MessageEmbed } = require('discord.js')
-const key = msg => [msg.guild.id, msg.guild.systemChannelID, 'gauges'].join(':')
+const { keyFor } = require('../../lib/redis.js')
+const key = msg => keyFor(msg, 'gauges')
 const last = array => array[array.length - 1]
 const { blue, red } = require('../../lib/colors.js')
 
