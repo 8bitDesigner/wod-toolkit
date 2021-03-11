@@ -36,6 +36,12 @@ Usage:
     use: this.handleRemove
   }
 
+  reactions = {
+    '⬆️': this.handleTick,
+    '⬇️': this.handleUntick,
+    '❌': this.removeOnReaction,
+  }
+
   parseInput (input) {
     const words = input.split(' ')
     let command = 'show'
@@ -77,7 +83,11 @@ Usage:
         }
 
         response.forEach(obj => {
-          msg.reply(obj instanceof Gauge ? this.gaugeToEmbed(obj) : obj)
+          if (obj instanceof Gauge) {
+            return msg.reply(this.gaugeToEmbed(obj)).then(reply => this.decorate(reply))
+          } else {
+            return msg.reply(obj)
+          }
         })
       }).catch(err => {
         msg.reply(this.errorToEmbed(err))
@@ -85,6 +95,22 @@ Usage:
     } else {
       msg.reply(this.errorToEmbed(new Error(`I don't know how to ${command}`)))
     }
+  }
+
+  handleReaction (reaction, user) {
+    const emoji = reaction.emoji.name
+    const handler = this.reactions[emoji]
+    const embed = reaction.message.embeds[0]
+
+    if (typeof handler === 'function' && embed.title) {
+      Gauge.find(key(reaction.message), embed.title)
+        .then(gauge => handler(reaction, user, gauge))
+    }
+  }
+
+  decorate (message) {
+    const emoji = Object.keys(this.reactions)
+    return Promise.all(emoji.map(thing => message.react(thing)))
   }
 
   handleHelp () {
@@ -169,6 +195,14 @@ Usage:
     } else {
       return Gauge.create(key(msg), name, segmentCount)
     }
+  }
+
+  removeOnReaction (reaction, user, gauge) {
+    gauge.delete().then(() => {
+      reaction.message.channel.send(`<@${user.id}>, Deleted "${gauge.name}"`)
+    }).catch(err => {
+      reaction.message.channel.send(this.errorToEmbed(err))
+    })
   }
 
   gaugeToEmbed (gauge) {

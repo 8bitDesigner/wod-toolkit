@@ -6,7 +6,10 @@ const token = process.env.TOKEN
 
 const commandDir = path.join(__dirname, 'commands')
 const CommandRouter = require('./lib/command-router.js')
-const router = new CommandRouter({ prefix: process.env.PREFIX || '!' })
+const router = new CommandRouter({
+  prefix: process.env.PREFIX || '!',
+  client: client
+})
 
 fs.readdirSync(commandDir).forEach(folder => {
   const Klass = require(path.join(commandDir, folder, 'index.js'))
@@ -22,5 +25,17 @@ client.on('message', (msg) => {
     router.route(msg)
   }
 })
+
+client.on('messageReactionAdd', async (reaction, user) => {
+  const promise = reaction.partial ? reaction.fetch() : Promise.resolve(reaction)
+
+  promise.then(reaction => {
+    if (router.shouldHandleReaction(reaction, user)) {
+      router.routeReaction(reaction, user)
+    }
+  }).catch(err => {
+    console.error('Could hydrate reaction', err)
+  })
+});
 
 client.login(token)
