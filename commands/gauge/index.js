@@ -18,6 +18,7 @@ Usage:
   \`!gauge [name] tick\` advance this gauge by one
   \`!gauge [name] untick\` decrease this gauge by one
   \`!gauge [name] add [count]\` adds \`count\` to gauge
+  \`!gauge [name] remove [count]\` decrease this gauge by \`count\`
   \`!gauge [name] use [count]\` decrease this gauge by \`count\`
   \`!gauge [name] delete\` will delete a gauge'
   \`!gauge\` and \`!gauge list\` list out all gauges in the channel
@@ -33,13 +34,14 @@ Usage:
     untick: this.handleUntick,
     set: this.handleUpdate,
     add: this.handleAdd,
-    use: this.handleRemove
+    use: this.handleRemove,
+    remove: this.handleRemove
   }
 
   reactions = {
-    '⬆️': this.handleTick,
-    '⬇️': this.handleUntick,
-    '❌': this.removeOnReaction,
+    '⬆️': this.handleReactionUp,
+    '⬇️': this.handleReactionDown,
+    '❌': this.handleReactionRemove,
   }
 
   parseInput (input) {
@@ -97,17 +99,6 @@ Usage:
     }
   }
 
-  handleReaction (reaction, user) {
-    const emoji = reaction.emoji.name
-    const handler = this.reactions[emoji]
-    const embed = reaction.message.embeds[0]
-
-    if (typeof handler === 'function' && embed.title) {
-      Gauge.find(key(reaction.message), embed.title)
-        .then(gauge => handler(reaction, user, gauge))
-    }
-  }
-
   decorate (message) {
     const emoji = Object.keys(this.reactions)
     return Promise.all(emoji.map(thing => message.react(thing)))
@@ -138,27 +129,19 @@ Usage:
   }
 
   handleTick (name, segmentCount, msg) {
-    return Gauge.find(key(msg), name).then(gauge => {
-      return gauge.setCompleted(gauge.attributes.completed + 1).save()
-    })
+    return Gauge.find(key(msg), name).then(gauge => gauge.add(1))
   }
 
   handleUntick (name, segmentCountsg, msg) {
-    return Gauge.find(key(msg), name).then(gauge => {
-      return gauge.setCompleted(gauge.attributes.completed - 1).save()
-    })
+    return Gauge.find(key(msg), name).then(gauge => gauge.remove(1))
   }
 
   handleAdd (name, segmentCount, msg) {
-    return Gauge.find(key(msg), name).then(gauge => {
-      return gauge.setCompleted(gauge.attributes.completed + segmentCount).save()
-    })
+    return Gauge.find(key(msg), name).then(gauge => gauge.add(segmentCount))
   }
 
   handleRemove (name, segmentCount, msg) {
-    return Gauge.find(key(msg), name).then(gauge => {
-      return gauge.setCompleted(gauge.attributes.completed - segmentCount).save()
-    })
+    return Gauge.find(key(msg), name).then(gauge => gauge.remove(segmentCount))
   }
 
   handleUpdate (name, segmentCount, msg) {
@@ -197,12 +180,40 @@ Usage:
     }
   }
 
-  removeOnReaction (reaction, user, gauge) {
-    gauge.delete().then(() => {
-      reaction.message.channel.send(`<@${user.id}>, Deleted "${gauge.name}"`)
-    }).catch(err => {
-      reaction.message.channel.send(this.errorToEmbed(err))
+  handleReaction (reaction, user) {
+    const emoji = reaction.emoji.name
+    const handler = this.reactions[emoji]
+    const embed = reaction.message.embeds[0]
+    const channel = reaction.message.channel
+
+    // Bounce if we have no handler or our embed is untitled
+    if (typeof handler !== 'function' || !embed.title) { return }
+
+    Gauge.find(key(reaction.message), embed.title).then(gauge => {
+      if (!gauge) { return }
+
+      return handler.call(this, reaction, user, gauge).then(result => {
+        if (result instanceof Gauge) {
+          return channel.send(this.gaugeToEmbed(result))
+            .then(reply => this.decorate(reply))
+        } else {
+          return channel.send(result)
+        }
+      })
     })
+    .catch(err => channel.send(this.errorToEmbed(err)))
+  }
+
+  handleReactionUp (reaction, user, gauge) {
+    return gauge.add(1)
+  }
+
+  handleReactionDown (reaction, user, gauge) {
+    return gauge.remove(1)
+  }
+
+  handleReactionRemove (reaction, user, gauge) {
+    return gauge.delete().then(() => `<@${user.id}>, Deleted "${gauge.name}"`)
   }
 
   gaugeToEmbed (gauge) {

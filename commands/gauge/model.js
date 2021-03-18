@@ -74,6 +74,14 @@ class Gauge {
     return this
   }
 
+  add (count = 0) {
+    return this.setCompleted(this.attributes.completed + count).save()
+  }
+
+  remove (count) {
+    return this.setCompleted(this.attributes.completed - count).save()
+  }
+
   delete () {
     return hdel(this.key, this.name)
   }
