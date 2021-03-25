@@ -1,4 +1,6 @@
-const {hexists, hget, hset, hdel, hgetall} = require('../../lib/redis.js')
+const { keyFor, hexists, hget, hset, hdel, hgetall } = require('../../lib/redis.js')
+const { MessageEmbed } = require('discord.js')
+const { blue, red } = require('../../lib/colors.js')
 
 const emoji = {
   filled: ':white_square_button:',
@@ -16,6 +18,10 @@ function clamp (min, val, max) {
 }
 
 class Gauge {
+  static keyFor (message) {
+    return keyFor(message, 'gauges')
+  }
+
   static find (key, name) {
     return hexists(key, name).then(exists => {
       if (exists) {
@@ -23,7 +29,7 @@ class Gauge {
           return new Gauge(key, name, JSON.parse(json))
         })
       } else {
-        return null
+        throw new Error(`No gauge found with the name "${name}"`)
       }
     })
   }
@@ -100,6 +106,16 @@ class Gauge {
     }
 
     return pips.join(' ')
+  }
+
+  toEmbed () {
+    const reply = new MessageEmbed()
+    reply.setTitle(this.name)
+    reply.setColor(blue)
+    reply.setDescription(this.toString())
+    reply.setFooter(`${this.attributes.completed} out of ${this.attributes.segments}`)
+
+    return reply
   }
 }
 

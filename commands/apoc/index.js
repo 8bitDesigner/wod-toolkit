@@ -24,7 +24,7 @@ const colors = {
 const toEmoji = num => emoji[num]
 
 module.exports = class ApocCommand extends Command {
-  name = 'Apoc'
+  name = 'apoc'
   description = 'Rolls a number of d6s using Apocalypse World parsing rules'
   usage = `
 Usage:
@@ -37,10 +37,6 @@ Usage:
 
   handle (input, message) {
     let modifier, result
-
-    if (input.trim() === 'help') {
-      return message.reply(this.helpToEmbed())
-    }
 
     try {
       modifier = this.modifier(input)

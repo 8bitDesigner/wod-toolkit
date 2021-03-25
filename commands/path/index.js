@@ -27,7 +27,7 @@ const colors = {
 const toEmoji = num => emoji[num]
 
 module.exports = class RollCommand extends Command {
-  name = 'Path'
+  name = 'path'
   description = 'Rolls a number of d10s, rerolling any 10s following Storypath rules'
   usage = `
 Usage:
@@ -40,7 +40,7 @@ Usage:
   handle (input, message) {
     let parsedInput, result, description
 
-    if (input.trim() === '' || input.trim() === 'help') {
+    if (input.trim() === '') {
       return message.reply(this.helpToEmbed())
     }
 

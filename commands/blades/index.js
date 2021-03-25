@@ -27,7 +27,7 @@ const colors = {
 const toEmoji = num => emoji[num]
 
 module.exports = class BladesCommand extends Command {
-  name = 'Blades'
+  name = 'blades'
   description = 'Rolls a number of d6s using Blades in the Darks parsing rules'
   usage = `
 Usage:
@@ -39,10 +39,6 @@ Usage:
 
   handle (input, message) {
     let parsedInput, result, description
-
-    if (input.trim() === '' || input.trim() === 'help') {
-      return message.reply(this.helpToEmbed())
-    }
 
     try {
       parsedInput = inputParser(input)
