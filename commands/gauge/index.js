@@ -1,19 +1,11 @@
 const path = require('path')
+const { Gauge, GaugeNotFoundError } = require('./model.js')
 const Command = require('../../lib/command.js')
-const { Gauge } = require('./model.js')
-const { keyFor } = require('../../lib/redis.js')
-const key = msg => keyFor(msg, 'gauges')
-const last = array => array[array.length - 1]
+const Decorator = require('./decorator.js')
 
 module.exports = class GaugeCommand extends Command {
   name = 'gauge'
   description = 'Track progress with a gauge'
-
-  reactions = {
-    '⬆️': this.handleReactionUp,
-    '⬇️': this.handleReactionDown,
-    '❌': this.handleReactionRemove,
-  }
 
   constructor (router) {
     super(router)
@@ -54,43 +46,29 @@ module.exports = class GaugeCommand extends Command {
     }
   }
 
-  decorate (message) {
-    const emoji = Object.keys(this.reactions)
-    return Promise.all(emoji.map(thing => message.react(thing)))
-  }
-
   handleReaction (reaction, user) {
     const emoji = reaction.emoji.name
-    const handler = this.reactions[emoji]
     const embed = reaction.message.embeds[0]
     const channel = reaction.message.channel
+    const decorator = new Decorator()
 
-    // Bounce if we have no handler or our embed is untitled
-    if (typeof handler !== 'function' || !embed.title) { return }
+    // Bounce if our embed is untitled or the decorator can't handle this emoji
+    if (!embed.title && !decorator.canHandle(emoji)) { return }
 
-    Gauge.find(key(reaction.message), embed.title).then(gauge => {
-      if (!gauge) { return }
-
-      return handler.call(this, reaction, user, gauge).then(result => {
+    Gauge.find(Gauge.keyFor(reaction.message), embed.title).then(gauge => {
+      return decorator.handle(emoji, gauge, user).then(result => {
         if (result instanceof Gauge) {
-          return channel.send(result.toEmbed()).then(reply => this.decorate(reply))
+          return channel.send(result.toEmbed()).then(reply => decorator.decorate(reply))
         } else {
           return channel.send(result)
         }
       })
     })
-    .catch(err => channel.send(this.errorToEmbed(err)))
-  }
-
-  handleReactionUp (reaction, user, gauge) {
-    return gauge.add(1)
-  }
-
-  handleReactionDown (reaction, user, gauge) {
-    return gauge.remove(1)
-  }
-
-  handleReactionRemove (reaction, user, gauge) {
-    return gauge.delete().then(() => `<@${user.id}>, Deleted "${gauge.name}"`)
+    .catch(err => {
+      // Only surface errors if we can find the bloody Gauge
+      if (!(err instanceof GaugeNotFoundError)) {
+        channel.send(this.errorToEmbed(err))
+      }
+    })
   }
 }

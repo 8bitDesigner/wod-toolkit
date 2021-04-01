@@ -1,7 +1,7 @@
 const { Gauge } = require('../model.js')
-const Command = require('../../../lib/command.js')
+const GaugeSubcommand = require('../gauge-subcommand.js')
 
-module.exports = class NewGaugeCommand extends Command {
+module.exports = class NewGaugeCommand extends GaugeSubcommand {
   name = 'new'
   description = 'create a new gague and post it in the current channel'
   usage = `${this.router.prefix}${this.path} [name] [number of segments]`
@@ -27,7 +27,9 @@ module.exports = class NewGaugeCommand extends Command {
       const {name, segmentCount} = this.parseInput(input)
       const key = Gauge.keyFor(msg)
 
-      Gauge.create(key, name, segmentCount).then(obj => msg.reply(obj.toEmbed()))
+      Gauge.create(key, name, segmentCount).then(obj => {
+        msg.reply(obj.toEmbed()).then(reply => this.decorate(reply))
+      })
     } catch (err) {
       msg.reply(this.errorToEmbed(err))
     }

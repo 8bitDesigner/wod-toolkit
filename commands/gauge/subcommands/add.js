@@ -1,7 +1,7 @@
 const { Gauge } = require('../model.js')
-const Command = require('../../../lib/command.js')
+const GaugeSubcommand = require('../gauge-subcommand.js')
 
-module.exports = class AddGaugeCommand extends Command {
+module.exports = class AddGaugeCommand extends GaugeSubcommand {
   name = 'add'
   description = 'adds [value] to a gauge'
   usage = `${this.router.prefix}${this.path} [name] [value]`
@@ -26,6 +26,7 @@ module.exports = class AddGaugeCommand extends Command {
       return Gauge.find(key, name)
         .then(gauge => gauge.add(value))
         .then(gauge => msg.reply(gauge.toEmbed()))
+        .then(msg => this.decorate(msg))
         .catch(err => msg.reply(this.errorToEmbed(err)))
     } catch (err) {
       msg.reply(this.errorToEmbed(err))

@@ -1,7 +1,7 @@
 const { Gauge } = require('../model.js')
-const Command = require('../../../lib/command.js')
+const GaugeSubcommand = require('../gauge-subcommand.js')
 
-module.exports = class RemoveGaugeCommand extends Command {
+module.exports = class RemoveGaugeCommand extends GaugeSubcommand {
   name = 'remove'
   description = 'removes [value] from a gauge'
   usage = `${this.router.prefix}${this.path} [name] [value]`
@@ -26,6 +26,7 @@ module.exports = class RemoveGaugeCommand extends Command {
       return Gauge.find(key, name)
         .then(gauge => gauge.remove(value))
         .then(gauge => msg.reply(gauge.toEmbed()))
+        .then(reply => this.decorate(reply))
         .catch(err => msg.reply(this.errorToEmbed(err)))
     } catch (err) {
       msg.reply(this.errorToEmbed(err))

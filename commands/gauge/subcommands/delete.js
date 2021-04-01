@@ -1,7 +1,7 @@
 const { Gauge } = require('../model.js')
-const Command = require('../../../lib/command.js')
+const GaugeSubcommand = require('../gauge-subcommand.js')
 
-module.exports = class DeleteGaugeCommand extends Command {
+module.exports = class DeleteGaugeCommand extends GaugeSubcommand {
   name = 'delete'
   description = 'delete a given gauge'
   usage = `${this.router.prefix}${this.path} [name]`

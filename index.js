@@ -26,7 +26,7 @@ client.on('message', (msg) => {
   }
 })
 
-client.on('messageReactionAdd', async (reaction, user) => {
+client.on('messageReactionAdd', (reaction, user) => {
   const promise = reaction.partial ? reaction.fetch() : Promise.resolve(reaction)
 
   promise.then(reaction => {
@@ -34,7 +34,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       router.routeReaction(reaction, user)
     }
   }).catch(err => {
-    console.error('Could hydrate reaction', err)
+    console.error('Could not hydrate reaction', err)
   })
 });
 

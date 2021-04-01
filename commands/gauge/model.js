@@ -17,6 +17,8 @@ function clamp (min, val, max) {
   }
 }
 
+class GaugeNotFoundError extends Error {}
+
 class Gauge {
   static keyFor (message) {
     return keyFor(message, 'gauges')
@@ -29,7 +31,7 @@ class Gauge {
           return new Gauge(key, name, JSON.parse(json))
         })
       } else {
-        throw new Error(`No gauge found with the name "${name}"`)
+        throw new GaugeNotFound(`No gauge found with the name "${name}"`)
       }
     })
   }
@@ -120,3 +122,4 @@ class Gauge {
 }
 
 module.exports.Gauge = Gauge
+module.exports.GaugeNotFoundError = GaugeNotFoundError
