@@ -6,6 +6,7 @@ const token = process.env.TOKEN
 
 const commandDir = path.join(__dirname, 'commands')
 const CommandRouter = require('./lib/command-router.js')
+const InteractionRequest = require('./lib/interaction-request.js')
 const router = new CommandRouter({
   prefix: process.env.PREFIX || '!',
   client: client
@@ -18,6 +19,10 @@ fs.readdirSync(commandDir).forEach(folder => {
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
+
+  router.commands.play.registerToGuild('760006991828484096').catch(err => {
+    console.error(err)
+  })
 })
 
 client.on('message', (msg) => {
@@ -36,6 +41,21 @@ client.on('messageReactionAdd', (reaction, user) => {
   }).catch(err => {
     console.error('Could not hydrate reaction', err)
   })
-});
+})
+
+client.ws.on('INTERACTION_CREATE', interaction => {
+  const request = new InteractionRequest(client, interaction)
+  const handler = router.commands[interaction.data.name]
+
+  if (handler) {
+    handler.handleSlash(request)
+      .catch(err => console.error(err))
+  } else {
+    request.respond(`I don't know how to handle slash commands for "${data.name}"`)
+      .setEphemeral()
+      .send()
+      .catch(err => console.error(err))
+  }
+})
 
 client.login(token)

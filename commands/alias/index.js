@@ -1,7 +1,7 @@
 const Command = require('../../lib/command.js')
 const {create, destroy, list} = require('../../lib/aliases.js')
 
-module.exports = class PlayCommand extends Command {
+module.exports = class AliasCommand extends Command {
   name = 'alias'
   description = 'Create command aliases and shortcuts'
   usage = `
