@@ -6,7 +6,7 @@ const token = process.env.TOKEN
 
 const commandDir = path.join(__dirname, 'commands')
 const CommandRouter = require('./lib/command-router.js')
-const InteractionRequest = require('./lib/interaction-request.js')
+const { Request, Response } = require('./lib/interaction')
 const router = new CommandRouter({
   prefix: process.env.PREFIX || '!',
   client: client
@@ -20,8 +20,13 @@ fs.readdirSync(commandDir).forEach(folder => {
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 
-  router.commands.play.registerToGuild('760006991828484096').catch(err => {
-    console.error(err)
+  const userId = client.user.id
+  const commands = Object.values(router.commands)
+  const slashable = commands.filter(c => c.options).map(command => command.toSlashCommand())
+
+  slashable.forEach(data => {
+    client.api.applications(userId).guilds('760006991828484096').commands.post({data})
+      .catch(err => console.error(err))
   })
 })
 
@@ -44,17 +49,22 @@ client.on('messageReactionAdd', (reaction, user) => {
 })
 
 client.ws.on('INTERACTION_CREATE', interaction => {
-  const request = new InteractionRequest(client, interaction)
+  const request = new Request(client, interaction)
+  const response = new Response(client, interaction)
   const handler = router.commands[interaction.data.name]
 
-  if (handler) {
-    handler.handleSlash(request)
-      .catch(err => console.error(err))
-  } else {
-    request.respond(`I don't know how to handle slash commands for "${data.name}"`)
-      .setEphemeral()
-      .send()
-      .catch(err => console.error(err))
+  try {
+    if (handler) {
+      handler.handleSlash(request, response)
+        .catch(err => console.error(err))
+    } else {
+      response.setContent(`I don't know how to handle slash commands for "${data.name}"`)
+        .setEphemeral()
+        .send()
+        .catch(err => console.error(err))
+    }
+  } catch (e) {
+    console.error(err)
   }
 })
 

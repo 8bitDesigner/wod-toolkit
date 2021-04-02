@@ -1,6 +1,7 @@
 const Command = require('../../lib/command.js')
 const { MessageEmbed } = require('discord.js')
 const { red, blue, orange, green } = require('../../lib/colors.js')
+const { roll: rollEffect } = require('../../lib/sound.js')
 const roll = require('../../lib/roll.js')
 
 const initialCap = word => word[0].toUpperCase() + word.substring(1, word.length)
@@ -35,16 +36,42 @@ Usage:
   \`!apoc help\` Show this message
 `
 
+  options = [
+    {
+      type: 4, // integer
+      name: 'modifier',
+      description: 'amount to add or subtract from the roll',
+      required: false
+    }
+  ]
+
+  main (modifier = 0) {
+    if (Math.abs(modifier) > 6) {
+      throw new Error(`You can't modify a roll by more than 6!`)
+    } else {
+      return this.resultToEmbed(roll(2), modifier)
+    }
+  }
+
   handle (input, message) {
-    let modifier, result
+    try {
+      const embed = this.main(this.modifier(input))
+      rollEffect.playTo(message.member).catch(() => {})
+      return message.reply(embed)
+    } catch (error) {
+      return message.reply(this.errorToEmbed(error))
+    }
+  }
+
+  handleSlash (request, response) {
+    const modifier = request.data.modifier || 0
 
     try {
-      modifier = this.modifier(input)
-      result = roll(2)
-      message.reply(this.resultToEmbed(result, modifier, message))
-      this.playRollSound(message)
+      const embed = this.main(modifier)
+      rollEffect.playTo(request.member).catch(() => {})
+      return response.addEmbed(embed).send()
     } catch (error) {
-      message.reply(this.errorToEmbed(error))
+      return response.setContent(error.message).setEphemeral().send()
     }
   }
 
@@ -73,7 +100,7 @@ Usage:
     return type
   }
 
-  resultToEmbed (result, modifier, message) {
+  resultToEmbed (result, modifier) {
     const reply = new MessageEmbed()
     const type = this.resultType(result, modifier)
     const description = result.map(toEmoji).join(' ')
@@ -82,7 +109,7 @@ Usage:
       ? '+'
       : '-'
 
-    reply.setTitle(`@${message.author.username} - ${initialCap(type)}`)
+    reply.setTitle(initialCap(type))
     reply.setColor(colors[type])
 
     if (modifier) {
@@ -92,9 +119,5 @@ Usage:
     }
 
     return reply
-  }
-
-  playRollSound (message) {
-    this.router.route(message, 'play roll quietly')
   }
 }
